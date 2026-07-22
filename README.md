@@ -1,5 +1,8 @@
 # 🏙️ Sysopolis
 
+[![CI](https://github.com/mkarki/sysopolis/actions/workflows/ci.yml/badge.svg)](https://github.com/mkarki/sysopolis/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **Your infrastructure, as a living city.**
 > Point it at your stack. Watch it come alive.
 
