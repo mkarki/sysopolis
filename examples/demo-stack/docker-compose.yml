@@ -1,0 +1,71 @@
+# Sysopolis demo stack — a tiny fake shop with enough moving parts to make a nice city.
+#
+#   docker compose -p sysopolis-demo up -d
+#   npm run demo:docker        (from the repo root)
+#   docker stop sysopolis-demo-payments-1     ← watch the building go dark
+#
+# Two user-defined networks → two districts. The load generator keeps real
+# traffic flowing so the roads glow in docker mode too.
+
+name: sysopolis-demo
+
+networks:
+  shop:
+  data:
+
+services:
+  gateway:
+    image: nginx:1.25-alpine
+    networks: [shop]
+    ports:
+      - "8880:80"
+    configs:
+      - source: gateway_conf
+        target: /etc/nginx/conf.d/default.conf
+    depends_on: [payments, catalog]
+
+  payments:
+    image: nginx:1.25-alpine
+    networks: [shop, data]
+
+  catalog:
+    image: nginx:1.25-alpine
+    networks: [shop, data]
+
+  sessions:
+    image: redis:7-alpine
+    networks: [shop]
+
+  orders-db:
+    image: postgres:16-alpine
+    networks: [data]
+    environment:
+      POSTGRES_PASSWORD: demo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  events:
+    image: rabbitmq:3.13-alpine
+    networks: [data]
+
+  worker-invoices:
+    image: alpine:3.20
+    command: sh -c 'while true; do wget -q -O /dev/null http://catalog || true; sleep 2; done'
+    networks: [data]
+
+  load-gen:
+    image: alpine:3.20
+    command: sh -c 'while true; do wget -q -O /dev/null http://gateway || true; wget -q -O /dev/null http://payments || true; sleep 1; done'
+    networks: [shop]
+
+configs:
+  gateway_conf:
+    content: |
+      server {
+        listen 80;
+        location /pay { proxy_pass http://payments/; }
+        location /    { proxy_pass http://catalog/; }
+      }

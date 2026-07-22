@@ -1,0 +1,22 @@
+{
+  "name": "sysopolis",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Your infrastructure, as a living city. Point it at your stack and explore it as an isometric ops-city.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "demo": "concurrently -k -n collector,app -c cyan,magenta \"npm run synthetic -w @sysopolis/collector\" \"npm run dev -w @sysopolis/app -- --open\"",
+    "demo:docker": "concurrently -k -n collector,app -c cyan,magenta \"npm run docker -w @sysopolis/collector\" \"npm run dev -w @sysopolis/app -- --open\"",
+    "dev:app": "npm run dev -w @sysopolis/app",
+    "dev:collector": "npm run synthetic -w @sysopolis/collector",
+    "gen": "npm run gen -w @sysopolis/collector",
+    "typecheck": "npm run typecheck --workspaces",
+    "build": "npm run typecheck && npm run build -w @sysopolis/app"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

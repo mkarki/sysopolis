@@ -1,0 +1,25 @@
+{
+  "name": "@sysopolis/collector",
+  "version": "0.1.0",
+  "description": "Sysopolis collector: serves the IR over HTTP and streams live status/metrics deltas over WebSocket. Adapters: docker (dockerode) and synthetic.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "synthetic": "tsx src/index.ts --synthetic",
+    "docker": "tsx src/index.ts --docker",
+    "gen": "tsx src/gen.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sysopolis/core": "0.1.0",
+    "dockerode": "^4.0.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^3.3.31",
+    "@types/node": "^22.7.4",
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}
