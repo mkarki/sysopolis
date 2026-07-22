@@ -10,6 +10,7 @@ interface Args {
   port: number;
   seed: number;
   intervalMs: number;
+  project?: string;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -21,10 +22,12 @@ function parseArgs(argv: string[]): Args {
     else if (a === '--port') args.port = Number(argv[++i]);
     else if (a === '--seed') args.seed = Number(argv[++i]);
     else if (a === '--interval') args.intervalMs = Number(argv[++i]);
+    else if (a === '--project') args.project = argv[++i];
     else if (a === '--help' || a === '-h') {
       console.log(`sysopolis-collector
   --synthetic        serve the built-in fake enterprise (default)
   --docker           introspect the local Docker daemon
+  --project <name>   docker mode: only show this docker-compose project
   --port <n>         HTTP/WS port (default 4400)
   --seed <n>         synthetic city seed (default 42)
   --interval <ms>    tick/poll interval (default 1000)`);
@@ -58,7 +61,7 @@ async function main() {
     cleanup = () => clearInterval(timer);
     console.log(`[collector] synthetic city "${ir.meta.name}" (seed ${args.seed})`);
   } else {
-    const adapter = new DockerAdapter();
+    const adapter = new DockerAdapter({ project: args.project });
     try {
       await adapter.ping();
     } catch (e) {

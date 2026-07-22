@@ -21,6 +21,7 @@ interface ContainerInfoLite {
   ImageID: string;
   State: string;
   Status: string;
+  Labels?: Record<string, string>;
   NetworkSettings?: { Networks?: Record<string, unknown> };
 }
 
@@ -55,9 +56,12 @@ function primaryNetwork(networks: string[]): string {
 export class DockerAdapter {
   private readonly docker: Docker;
   private readonly imageSizeCache = new Map<string, number>();
+  /** When set, only containers of this docker-compose project are mapped. */
+  private readonly project?: string;
 
-  constructor(socketPath?: string) {
-    this.docker = socketPath ? new Docker({ socketPath }) : new Docker();
+  constructor(options: { socketPath?: string; project?: string } = {}) {
+    this.docker = options.socketPath ? new Docker({ socketPath: options.socketPath }) : new Docker();
+    this.project = options.project;
   }
 
   async ping(): Promise<void> {
@@ -66,7 +70,10 @@ export class DockerAdapter {
 
   /** Introspect running containers + networks and build a fresh IR. */
   async buildIR(): Promise<IR> {
-    const containers = (await this.docker.listContainers({ all: true })) as ContainerInfoLite[];
+    let containers = (await this.docker.listContainers({ all: true })) as ContainerInfoLite[];
+    if (this.project) {
+      containers = containers.filter((c) => c.Labels?.['com.docker.compose.project'] === this.project);
+    }
 
     const networksOf = new Map<string, string[]>();
     for (const c of containers) {
@@ -148,7 +155,11 @@ export class DockerAdapter {
     }
 
     return {
-      meta: { source: 'docker', name: 'Docker host', generatedAt: new Date().toISOString() },
+      meta: {
+        source: 'docker',
+        name: this.project ? `compose: ${this.project}` : 'Docker host',
+        generatedAt: new Date().toISOString(),
+      },
       districts: [...districtIds].sort().map((id) => ({ id, label: id, kind: 'network' as const })),
       systems,
       links,

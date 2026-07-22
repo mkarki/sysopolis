@@ -12,8 +12,10 @@ connection is a **road** — and real traffic flows down those roads as light. W
 service degrades or dies, its building goes dark and its traffic stops: you *feel* the
 outage instead of reading a dashboard.
 
-<!-- TODO: demo GIF — `docker stop payments` → the payments building goes dark, live -->
-![demo](docs/demo.gif)
+![demo — docker stop payments: the building goes dark, live](docs/demo.gif)
+
+*Above: the bundled demo stack in docker mode — `docker stop payments` and the building
+goes dark, its traffic dies; `docker start` and the lights come back. No refresh.*
 
 ## Why it's different
 
@@ -53,6 +55,12 @@ docker stop sysopolis-demo-payments-1
 
 The `payments` building goes dark, its roads stop glowing. `docker start` it and the
 lights come back.
+
+On a busy host, scope the city to one compose project:
+
+```bash
+npx tsx packages/collector/src/index.ts --docker --project sysopolis-demo
+```
 
 ## What you get
 

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { Color, InstancedMesh, Object3D } from 'three';
+import { BoxGeometry, Color, InstancedMesh, Object3D } from 'three';
 import { KIND_COLORS, type CityLayout, type IR } from '@sysopolis/core';
 import { useStore } from '../store';
 
@@ -26,6 +26,15 @@ export function Buildings({ ir, layout }: { ir: IR; layout: CityLayout }) {
     () => ir.systems.filter((s) => layout.positions[s.id]),
     [ir, layout],
   );
+
+  // Built once (not via onUpdate, which re-fires on every re-render and would
+  // accumulate the translation): origin at the base so scaling Y grows upward.
+  const boxGeometry = useMemo(() => {
+    const g = new BoxGeometry(1, 1, 1);
+    g.translate(0, 0.5, 0);
+    return g;
+  }, []);
+  useLayoutEffect(() => () => boxGeometry.dispose(), [boxGeometry]);
 
   useLayoutEffect(() => {
     const mesh = meshRef.current;
@@ -96,6 +105,7 @@ export function Buildings({ ir, layout }: { ir: IR; layout: CityLayout }) {
   return (
     <instancedMesh
       ref={meshRef}
+      geometry={boxGeometry}
       args={[undefined, undefined, Math.max(1, systems.length)]}
       onClick={handleClick}
       onPointerOver={(e) => {
@@ -107,8 +117,6 @@ export function Buildings({ ir, layout }: { ir: IR; layout: CityLayout }) {
       }}
       castShadow
     >
-      {/* Origin at the base so scaling Y grows buildings upward. */}
-      <boxGeometry args={[1, 1, 1]} onUpdate={(g) => g.translate(0, 0.5, 0)} />
       <meshStandardMaterial roughness={0.55} metalness={0.15} />
     </instancedMesh>
   );
